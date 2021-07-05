@@ -1,136 +1,102 @@
 package me.danjono.inventoryrollback.gui;
 
-import me.danjono.inventoryrollback.config.ConfigFile;
-import me.danjono.inventoryrollback.config.MessageData;
-import me.danjono.inventoryrollback.data.LogType;
-import me.danjono.inventoryrollback.data.PlayerData;
+import me.danjono.inventoryrollback.i18n.Message;
+import me.danjono.inventoryrollback.items.Buttons;
+import me.danjono.inventoryrollback.model.LogType;
+import me.danjono.inventoryrollback.model.PlayerData;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 public class RollbackListMenu {
 
-    private final Player staff;
-    private final UUID playerUUID;
-    private final LogType logType;
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss, dd.MM.yyyy");
+
+    private final UUID target;
+    private final LogType type;
     private int pageNumber;
 
-    private final FileConfiguration playerData;
+    private final FileConfiguration data;
 
-    public RollbackListMenu(Player staff, OfflinePlayer player, LogType logType, int pageNumber) {
-        this.staff = staff;
-        this.playerUUID = player.getUniqueId();
-        this.logType = logType;
-        this.pageNumber = pageNumber;
+    public RollbackListMenu(UUID target, LogType type, int page) {
+        this.target = target;
+        this.type = type;
+        this.pageNumber = page;
 
-        this.playerData = new PlayerData(this.playerUUID, this.logType).getData();
+        data = new PlayerData(target, type).getData();
     }
 
     public Inventory showBackups() {
-        Inventory backupMenu = Bukkit.createInventory(staff, 45, InventoryName.ROLLBACK_LIST.getName());
+        Inventory backupMenu = Bukkit.createInventory(null, 45, InventoryType.ROLLBACK_LIST.getName());
+        ConfigurationSection section = data.getConfigurationSection("data");
+        if (section == null) throw new RuntimeException("Could not find configuration section 'data' on " + target + "!");
 
-        Buttons buttons = new Buttons();
-        MessageData messages = new MessageData();
-
-        //Check how many backups there are in total
-        int backups = 0;
-        List<Long> timeStamps = new ArrayList<>();
-
-        for (String time : playerData.getConfigurationSection("data").getKeys(false)) {
-            backups++;
-            timeStamps.add(Long.parseLong(time));
+        List<Long> timestamps = new ArrayList<>();
+        for (String time : section.getKeys(false)) {
+            timestamps.add(Long.parseLong(time));
         }
 
-        Collections.reverse(timeStamps);
+        Collections.reverse(timestamps);
+        int max = 36, backups = timestamps.size(), pages = (int) Math.ceil(backups / (double) max), position = 0;
 
-        //How many rows are required
-        int spaceRequired = 36;
-
-        //How many pages are required
-        int pagesRequired = (int) Math.ceil(backups / (double) spaceRequired);
-
-        //Check if pageNumber supplied is greater then pagesRequired, if true set to last page
-        if (pageNumber > pagesRequired) {
-            pageNumber = pagesRequired;
+        if (pageNumber > pages) {
+            pageNumber = pages;
         } else if (pageNumber <= 0) {
             pageNumber = 1;
         }
 
-        int position = 0;
-        for (int i = 0; i < spaceRequired; i++) {
+        for (int i = 0; i < max; i++) {
             try {
-                Long time = timeStamps.get(((pageNumber - 1) * spaceRequired) + i);
+                long time = timestamps.get(((pageNumber - 1) * max) + i);
+                List<Component> lore = new ArrayList<>();
 
-                String deathReason = null;
-                try {
-                    deathReason = messages.deathReason(playerData.getString("data." + time + ".deathReason"));
-                } catch (NullPointerException ignored) {
-                }
+                String deathReason = data.getString("data." + time + ".deathReason", "none");
+                Location location = data.getLocation("data." + time + ".location");
+                if (location == null) continue;
 
-                String displayName = messages.deathTime(getTime(time));
+                lore.add(Message.COMMAND_RESTORE_SPECIFIC_DEATH_REASON.build(deathReason));
+                lore.add(Message.LOCATION_WORLD.build(location.getWorld().getName()));
+                lore.add(Message.LOCATION_X.build(location.getX()));
+                lore.add(Message.LOCATION_Y.build(location.getY()));
+                lore.add(Message.LOCATION_Z.build(location.getZ()));
 
-                List<String> lore = new ArrayList<>();
-                if (deathReason != null)
-                    lore.add(deathReason);
+                Component displayName = Message.COMMAND_RESTORE_SPECIFIC_DEATH_TIME.build(DATE_FORMAT.format(time));
+                ItemStack item = Buttons.getInventoryButton(Material.CHEST, target, type, location, time, displayName, lore);
 
-                String world = playerData.getString("data." + time + ".location.world");
-                String x = playerData.getInt("data." + time + ".location.x") + "";
-                String y = playerData.getInt("data." + time + ".location.y") + "";
-                String z = playerData.getInt("data." + time + ".location.z") + "";
-                String location = world + "," + x + "," + y + "," + z;
-
-                lore.add(messages.deathLocationWorld(world));
-                lore.add(messages.deathLocationX(x));
-                lore.add(messages.deathLocationY(y));
-                lore.add(messages.deathLocationZ(z));
-
-                ItemStack inventory = buttons.createInventoryButton(new ItemStack(Material.CHEST), playerUUID, logType, location, time, displayName, lore);
-
-                backupMenu.setItem(position, inventory);
-
+                backupMenu.setItem(position, item);
             } catch (IndexOutOfBoundsException ignored) {
             }
 
             position++;
         }
 
-        List<String> lore = new ArrayList<>();
-
         if (pageNumber == 1) {
-            ItemStack mainMenu = buttons.backButton(MessageData.mainMenuButton, playerUUID, logType, 0, null);
+            ItemStack mainMenu = Buttons.getBackButton(Message.INVENTORY_ICONS_MAIN_MENU.build(), target, type, 0);
             backupMenu.setItem(position + 1, mainMenu);
         }
 
         if (pageNumber > 1) {
-            lore.add("Page " + (pageNumber - 1));
-            ItemStack previousPage = buttons.backButton(MessageData.previousPageButton, playerUUID, logType, pageNumber - 1, lore);
-
+            ItemStack previousPage = Buttons.getBackButton(Message.INVENTORY_ICONS_PAGE_PREVIOUS.build(), target, type, pageNumber - 1, Component.text("Page " + (pageNumber - 1)));
             backupMenu.setItem(position + 1, previousPage);
-            lore.clear();
         }
 
-        if (pageNumber < pagesRequired) {
-            lore.add("Page " + (pageNumber + 1));
-            ItemStack nextPage = buttons.nextButton(MessageData.nextPageButton, playerUUID, logType, pageNumber + 1, lore);
-
+        if (pageNumber < pages) {
+            ItemStack nextPage = Buttons.getNextButton(Message.INVENTORY_ICONS_PAGE_NEXT.build(), target, type, pageNumber + 1, Component.text("Page " + (pageNumber + 1)));
             backupMenu.setItem(position + 7, nextPage);
-            lore.clear();
         }
 
         return backupMenu;
     }
-
-    private static String getTime(Long time) {
-        SimpleDateFormat sdf = new SimpleDateFormat(ConfigFile.timeFormat);
-        sdf.setTimeZone(TimeZone.getTimeZone(ConfigFile.timeZone));
-        return sdf.format(new Date(time));
-    }
-
 }

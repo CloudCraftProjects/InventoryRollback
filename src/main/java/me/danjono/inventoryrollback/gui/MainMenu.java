@@ -1,79 +1,62 @@
 package me.danjono.inventoryrollback.gui;
 
-import me.danjono.inventoryrollback.config.ConfigFile;
-import me.danjono.inventoryrollback.config.MessageData;
-import me.danjono.inventoryrollback.data.LogType;
-import me.danjono.inventoryrollback.data.PlayerData;
+import me.danjono.inventoryrollback.i18n.Message;
+import me.danjono.inventoryrollback.items.Buttons;
+import me.danjono.inventoryrollback.model.LogType;
+import me.danjono.inventoryrollback.model.PlayerData;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
 import java.util.UUID;
 
-public class MainMenu {
-
-    private final Player staff;
-    private final OfflinePlayer player;
-
-    public MainMenu(Player staff, OfflinePlayer player) {
-        this.staff = staff;
-        this.player = player;
-    }
+public record MainMenu(Player player, OfflinePlayer target) {
 
     public Inventory getMenu() {
-        Inventory mainMenu = Bukkit.createInventory(staff, 9, InventoryName.MAIN_MENU.getName());
-        Buttons buttons = new Buttons();
+        Inventory mainMenu = Bukkit.createInventory(player, 9, InventoryType.MAIN_MENU.getName());
+        UUID uuid = target.getUniqueId();
 
-        UUID uuid = player.getUniqueId();
+        boolean joins = new PlayerData(target, LogType.JOIN).getFile().exists();
+        boolean quits = new PlayerData(target, LogType.QUIT).getFile().exists();
+        boolean deaths = new PlayerData(target, LogType.DEATH).getFile().exists();
+        boolean forceSaves = new PlayerData(target, LogType.FORCE).getFile().exists();
+        boolean worldChanges = new PlayerData(target, LogType.WORLD_CHANGE).getFile().exists();
 
-        File joinsFile = new PlayerData(player, LogType.JOIN).getFile();
-        File quitsFile = new PlayerData(player, LogType.QUIT).getFile();
-        File deathsFile = new PlayerData(player, LogType.DEATH).getFile();
-        File worldChangeFile = new PlayerData(player, LogType.WORLD_CHANGE).getFile();
-        File forceSaveFile = new PlayerData(player, LogType.FORCE).getFile();
-
-        if (!joinsFile.exists()
-                && !quitsFile.exists()
-                && !deathsFile.exists()
-                && !worldChangeFile.exists()
-                && !forceSaveFile.exists()) {
-            staff.sendMessage(MessageData.pluginName + new MessageData().noBackup(player.getName()));
+        if (!joins && !quits && !deaths && !worldChanges && !forceSaves) {
+            player.sendMessage(Message.ERRORS_NO_BACKUP.build(target.getName()));
             return null;
+        } else {
+            mainMenu.setItem(0, Buttons.getPlayerHead(target, Message.INVENTORY_HEAD.build(target.getName())));
+
+            int position = 2;
+            if (deaths) {
+                mainMenu.setItem(position, LogType.DEATH.getItem(uuid));
+                position += 1;
+            }
+
+            if (joins) {
+                mainMenu.setItem(position, LogType.JOIN.getItem(uuid));
+                position += 1;
+            }
+
+            if (quits) {
+                mainMenu.setItem(position, LogType.QUIT.getItem(uuid));
+                position += 1;
+            }
+
+            if (worldChanges) {
+                mainMenu.setItem(position, LogType.WORLD_CHANGE.getItem(uuid));
+                position += 1;
+            }
+
+            if (forceSaves) {
+                mainMenu.setItem(position, LogType.FORCE.getItem(uuid));
+            }
+
+            return mainMenu;
         }
-
-        mainMenu.setItem(0, buttons.playerHead(player, null));
-
-        int position = 2;
-
-        if (deathsFile.exists()) {
-            mainMenu.setItem(position, buttons.createLogTypeButton(new ItemStack(ConfigFile.deathIcon), uuid, MessageData.deathIconName, LogType.DEATH, null));
-            position++;
-        }
-
-        if (joinsFile.exists()) {
-            mainMenu.setItem(position, buttons.createLogTypeButton(new ItemStack(ConfigFile.joinIcon), uuid, MessageData.joinIconName, LogType.JOIN, null));
-            position++;
-        }
-
-        if (quitsFile.exists()) {
-            mainMenu.setItem(position, buttons.createLogTypeButton(new ItemStack(ConfigFile.quitIcon), uuid, MessageData.quitIconName, LogType.QUIT, null));
-            position++;
-        }
-
-        if (worldChangeFile.exists()) {
-            mainMenu.setItem(position, buttons.createLogTypeButton(new ItemStack(ConfigFile.worldChangeIcon), uuid, MessageData.worldChangeIconName, LogType.WORLD_CHANGE, null));
-            position++;
-        }
-
-        if (forceSaveFile.exists()) {
-            mainMenu.setItem(position, buttons.createLogTypeButton(new ItemStack(ConfigFile.forceSaveIcon), uuid, MessageData.forceSaveIconName, LogType.FORCE, null));
-            position++;
-        }
-
-        return mainMenu;
     }
-
 }
