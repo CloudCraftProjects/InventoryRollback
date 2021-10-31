@@ -39,7 +39,7 @@ public class SaveListener implements Listener {
 
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
-        if (!event.getPlayer().hasPermission("inventoryrollback.save.world-change")) return;
+        if (!event.getPlayer().hasPermission("inventoryrollback.saves.world-change")) return;
         Player player = event.getPlayer();
 
         new SaveInventory(event.getPlayer(), LogType.WORLD_CHANGE, null, player.getInventory(), player.getEnderChest()).createSave();
