@@ -1,5 +1,5 @@
 name: InventoryRollback
 main: me.danjono.inventoryrollback.InventoryRollbackMain
-version: @version@
+version: ${version}
 authors: [ danjono, booky10 ]
 api-version: 1.17
