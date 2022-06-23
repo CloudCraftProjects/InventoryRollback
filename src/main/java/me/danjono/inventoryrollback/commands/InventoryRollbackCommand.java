@@ -8,7 +8,6 @@ import me.danjono.inventoryrollback.saving.SaveInventory;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -123,6 +122,6 @@ public class InventoryRollbackCommand extends Command {
             return Collections.emptyList();
         }
 
-        return completions.filter(suggestion -> StringUtils.startsWithIgnoreCase(suggestion, args[args.length - 1])).collect(Collectors.toList());
+        return completions.filter(suggestion -> suggestion.toLowerCase().startsWith(args[args.length - 1].toLowerCase())).collect(Collectors.toList());
     }
 }

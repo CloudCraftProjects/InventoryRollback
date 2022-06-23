@@ -23,7 +23,7 @@ public class TranslationManager {
 
     public void reload() {
         if (registry != null) {
-            GlobalTranslator.get().removeSource(registry);
+            GlobalTranslator.translator().removeSource(registry);
         }
 
         registry = new ColoredTranslationRegistry(Key.key("ir", "main"));
@@ -32,6 +32,6 @@ public class TranslationManager {
         ResourceBundle bundle = ResourceBundle.getBundle("ir", DEFAULT_LOCALE, UTF8ResourceBundleControl.get());
         registry.registerAll(DEFAULT_LOCALE, bundle, false);
 
-        GlobalTranslator.get().addSource(registry);
+        GlobalTranslator.translator().addSource(registry);
     }
 }
