@@ -1,21 +1,26 @@
 plugins {
     id("java-library")
     id("maven-publish")
+
+    id ("net.minecrell.plugin-yml.bukkit") version "0.5.3"
 }
 
 group = "me.danjono"
-version = "1.5.2"
+version = "1.5.3"
 
 repositories {
-    maven("https://papermc.io/repo/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    api("io.papermc.paper:paper-api:1.19-R0.1-SNAPSHOT")
+    api("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
 }
 
 java {
     withSourcesJar()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 publishing {
@@ -25,9 +30,8 @@ publishing {
     }
 }
 
-tasks.processResources {
-    inputs.property("version", project.version)
-    filesMatching("plugin.yml") {
-        expand("version" to project.version)
-    }
+bukkit {
+    main = "me.danjono.inventoryrollback.InventoryRollbackMain"
+    authors = listOf("danjono", "booky10")
+    apiVersion = "1.19"
 }
