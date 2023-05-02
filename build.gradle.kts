@@ -20,7 +20,7 @@ java {
 
 publishing {
     publications.create<MavenPublication>("maven") {
-        artifactId = project.name.toLowerCase()
+        artifactId = project.name.lowercase()
         from(components["java"])
     }
 }
