@@ -47,7 +47,7 @@ public record SaveInventory(Player player, LogType type, DamageCause cause, Play
         config.set("data." + timestamp + ".armor", ITEMSTACK_SERIALIZER.objectArrayToBase64(inventory.getArmorContents()));
         config.set("data." + timestamp + ".inventory", ITEMSTACK_SERIALIZER.objectArrayToBase64(inventory.getContents()));
         config.set("data." + timestamp + ".deathReason", cause == null ? null : cause.name());
-        config.set("data." + timestamp + ".experience", player.getTotalExperience());
+        config.set("data." + timestamp + ".experience", player.calculateTotalExperiencePoints());
         config.set("data." + timestamp + ".saturation", player.getSaturation());
         config.set("data." + timestamp + ".location", player.getLocation());
         config.set("data." + timestamp + ".hunger", player.getFoodLevel());

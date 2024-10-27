@@ -172,7 +172,7 @@ public class InventoryClickListener extends Buttons implements Listener {
                             } else if (material.equals(ButtonType.EXPERIENCE.material())) {
                                 Player onlineTarget = target.getPlayer();
                                 if (onlineTarget != null) {
-                                    onlineTarget.setTotalExperience(persistent.getExperience());
+                                    onlineTarget.setExperienceLevelAndProgress(persistent.getExperience());
 
                                     Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_SELF.send(player, target.getName());
                                     Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_TARGET.send(onlineTarget, player.getName());
