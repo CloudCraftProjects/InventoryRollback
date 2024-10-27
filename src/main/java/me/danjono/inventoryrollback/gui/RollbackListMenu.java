@@ -25,11 +25,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static me.danjono.inventoryrollback.saving.ConfigurateUtil.FILE_EXT;
@@ -82,7 +85,9 @@ public class RollbackListMenu {
                     lore.add(Message.LOCATION_Z.build(loc.getZ()));
                 }
 
-                Component displayName = Message.COMMAND_RESTORE_SPECIFIC_DEATH_TIME.build(DATE_FORMAT.format(summary.timestamp));
+                LocalDateTime localDateTime = LocalDateTime.ofInstant(summary.timestamp, ZoneId.systemDefault());
+                Component displayName = Message.COMMAND_RESTORE_SPECIFIC_DEATH_TIME.build(
+                        DATE_FORMAT.format(localDateTime));
                 ItemStack item = Buttons.getInventoryButton(Material.CHEST, targetId, logType, summary.deathLocation, summary.timestamp, displayName, lore);
 
                 backupMenu.setItem(position, item);
@@ -124,7 +129,7 @@ public class RollbackListMenu {
                 } catch (ConfigurateException exception) {
                     throw new RuntimeException("Error while loading summary " + fileName + " for " + this.targetId);
                 }
-            }).toList();
+            }).collect(Collectors.toList());
         } catch (IOException exception) {
             throw new RuntimeException("Error while listing saves for " + this.targetId + " type " + this.logType);
         }

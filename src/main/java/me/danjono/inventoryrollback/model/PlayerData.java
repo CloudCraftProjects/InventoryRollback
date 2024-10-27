@@ -4,6 +4,7 @@ import me.danjono.inventoryrollback.InventoryRollbackMain;
 import me.danjono.inventoryrollback.saving.ConfigurateUtil;
 import org.bukkit.OfflinePlayer;
 import org.jspecify.annotations.Nullable;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 
@@ -32,8 +33,14 @@ public final class PlayerData {
         if (Files.notExists(path)) {
             return null; // not found
         }
-        return GsonConfigurationLoader.builder().defaultOptions(ConfigurateUtil.getConfigOptions())
-                .path(path).build().createNode();
+        GsonConfigurationLoader loader = GsonConfigurationLoader.builder()
+                .defaultOptions(ConfigurateUtil.getConfigOptions())
+                .path(path).build();
+        try {
+            return loader.load();
+        } catch (ConfigurateException exception) {
+            throw new RuntimeException("Error while loading " + logType + " snapshot for " + targetId + " at " + timestamp);
+        }
     }
 
     public static boolean hasData(OfflinePlayer target, LogType logType) {

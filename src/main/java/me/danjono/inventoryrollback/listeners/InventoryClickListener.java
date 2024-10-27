@@ -119,12 +119,6 @@ public class InventoryClickListener extends Buttons implements Listener {
 
                             OfflinePlayer target = Bukkit.getOfflinePlayer(persistent.getUniqueId());
                             LogType type = persistent.getLogType();
-                            Instant timestamp = persistent.getTimestamp();
-                            if (timestamp == null) return;
-
-                            ConfigurationNode node = PlayerData.loadNode(target, type, timestamp);
-                            if (node == null) return;
-                            RestoreInventory restore = new RestoreInventory(timestamp, node);
 
                             Material material = item.getType();
                             if (material.equals(ButtonType.PAGE_SELECTOR.material())) {
@@ -141,6 +135,11 @@ public class InventoryClickListener extends Buttons implements Listener {
                             } else if (material.equals(ButtonType.ENDER_CHEST.material())) {
                                 Player onlineTarget = target.getPlayer();
                                 if (onlineTarget != null) {
+                                    Instant timestamp = persistent.getTimestamp();
+                                    if (timestamp == null) return;
+                                    ConfigurationNode node = PlayerData.loadNode(target, type, timestamp);
+                                    if (node == null) return;
+                                    RestoreInventory restore = new RestoreInventory(timestamp, node);
                                     ItemStack[] enderChest = restore.enderChest();
                                     if (isInventoryEmpty(onlineTarget.getEnderChest())) {
                                         onlineTarget.getEnderChest().setContents(enderChest);

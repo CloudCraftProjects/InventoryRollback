@@ -1,5 +1,6 @@
 package me.danjono.inventoryrollback.saving;
 
+import me.danjono.inventoryrollback.InventoryRollbackMain;
 import me.danjono.inventoryrollback.model.LogType;
 import me.danjono.inventoryrollback.model.PlayerData;
 import org.bukkit.Location;
@@ -39,6 +40,8 @@ public record SaveInventory(
         } catch (ConfigurateException exception) {
             throw new IllegalStateException("Error while creating save of " + this.logType + " for " + this.player);
         }
+        InventoryRollbackMain.getInstance().getComponentLogger()
+                .info("Created {} snapshot for {}", this.logType.name(), this.player.teamDisplayName());
     }
 
     private static String serializeItems(@Nullable ItemStack[] stacks) {
