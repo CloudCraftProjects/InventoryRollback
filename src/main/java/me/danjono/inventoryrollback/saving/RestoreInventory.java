@@ -27,6 +27,6 @@ public record RestoreInventory(FileConfiguration data, long timestamp) {
     }
 
     public int getExperience() {
-        return data.getInt("data." + timestamp + ".xp");
+        return data.getInt("data." + timestamp + ".experience");
     }
 }
