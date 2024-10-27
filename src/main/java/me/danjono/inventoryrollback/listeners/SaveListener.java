@@ -1,9 +1,10 @@
 package me.danjono.inventoryrollback.listeners;
 
-import me.danjono.inventoryrollback.saving.SaveInventory;
 import me.danjono.inventoryrollback.model.LogType;
+import me.danjono.inventoryrollback.saving.SaveInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -28,13 +29,13 @@ public class SaveListener implements Listener {
         new SaveInventory(event.getPlayer(), LogType.QUIT, null, player.getInventory(), player.getEnderChest()).createSave();
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDeath(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         if (!player.hasPermission("inventoryrollback.saves.death")) return;
-        if (player.getHealth() == 0 || player.getHealth() > event.getDamage() || event.getEntity().isDead()) return;
+        if (player.getHealth() == 0 || player.getHealth() > event.getFinalDamage() || event.getEntity().isDead()) return;
 
-        new SaveInventory(player, LogType.DEATH, event.getCause(), player.getInventory(), player.getEnderChest()).createSave();
+        new SaveInventory(player, LogType.DEATH, event.getDamageSource(), player.getInventory(), player.getEnderChest()).createSave();
     }
 
     @EventHandler

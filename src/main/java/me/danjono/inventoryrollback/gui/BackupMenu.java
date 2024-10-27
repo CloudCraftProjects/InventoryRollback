@@ -9,9 +9,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.time.Instant;
 import java.util.UUID;
 
-public record BackupMenu(Player player, UUID uuid, LogType type, long timestamp, ItemStack[] inventory, ItemStack[] enderChest, Location location, double health, int hunger, float saturation, int experience) {
+public record BackupMenu(
+        Player player, UUID uuid, LogType type, Instant timestamp, ItemStack[] inventory,
+        ItemStack[] enderChest, Location location, double health, int hunger, float saturation, int experience
+) {
 
     public Inventory showItems() {
         Inventory inventory = Bukkit.createInventory(null, 54, InventoryType.BACKUP.getName());

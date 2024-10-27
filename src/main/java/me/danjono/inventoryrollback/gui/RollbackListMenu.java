@@ -4,76 +4,86 @@ import me.danjono.inventoryrollback.i18n.Message;
 import me.danjono.inventoryrollback.items.Buttons;
 import me.danjono.inventoryrollback.model.LogType;
 import me.danjono.inventoryrollback.model.PlayerData;
+import me.danjono.inventoryrollback.saving.ConfigurateUtil;
+import me.danjono.inventoryrollback.saving.DeathCauseInfo;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.NumberConversions;
+import org.jspecify.annotations.Nullable;
+import org.spongepowered.configurate.BasicConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
 
-import java.text.SimpleDateFormat;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
+
+import static me.danjono.inventoryrollback.saving.ConfigurateUtil.FILE_EXT;
 
 public class RollbackListMenu {
 
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss, dd.MM.yyyy");
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    private static final int MAX_PER_PAGE = 9 * 4;
 
-    private final UUID target;
-    private final LogType type;
+    private final UUID targetId;
+    private final LogType logType;
+    private final Path playerDir;
     private int pageNumber;
 
-    private final FileConfiguration data;
-
-    public RollbackListMenu(UUID target, LogType type, int page) {
-        this.target = target;
-        this.type = type;
+    public RollbackListMenu(UUID targetId, LogType logType, int page) {
+        this.targetId = targetId;
+        this.logType = logType;
+        this.playerDir = PlayerData.getPlayerDir(targetId, logType);
         this.pageNumber = page;
-
-        data = new PlayerData(target, type).getData();
     }
 
     public Inventory showBackups() {
         Inventory backupMenu = Bukkit.createInventory(null, 45, InventoryType.ROLLBACK_LIST.getName());
-        ConfigurationSection section = data.getConfigurationSection("data");
-        if (section == null) throw new RuntimeException("Could not find configuration section 'data' on " + target + "!");
 
-        List<Long> timestamps = new ArrayList<>();
-        for (String time : section.getKeys(false)) {
-            timestamps.add(Long.parseLong(time));
+        List<SummaryData> summaries = this.loadSummaries();
+        summaries.sort(Comparator.comparing(SummaryData::timestamp).reversed());
+        int pages = NumberConversions.ceil(summaries.size() / (double) MAX_PER_PAGE);
+
+        if (this.pageNumber > pages) {
+            this.pageNumber = pages;
+        } else if (this.pageNumber <= 0) {
+            this.pageNumber = 1;
         }
 
-        Collections.reverse(timestamps);
-        int max = 36, backups = timestamps.size(), pages = (int) Math.ceil(backups / (double) max), position = 0;
-
-        if (pageNumber > pages) {
-            pageNumber = pages;
-        } else if (pageNumber <= 0) {
-            pageNumber = 1;
-        }
-
-        for (int i = 0; i < max; i++) {
+        int position = 0;
+        for (int i = 0; i < MAX_PER_PAGE; i++) {
             try {
-                long time = timestamps.get(((pageNumber - 1) * max) + i);
+                SummaryData summary = summaries.get(((pageNumber - 1) * MAX_PER_PAGE) + i);
                 List<Component> lore = new ArrayList<>();
+                if (summary.deathCause != null) {
+                    lore.add(Message.COMMAND_RESTORE_SPECIFIC_DEATH_REASON.build(summary.deathCause.asComponent()));
+                }
+                if (summary.deathLocation != null) {
+                    Location loc = summary.deathLocation;
+                    if (loc.isWorldLoaded()) {
+                        lore.add(Message.LOCATION_WORLD.build(loc.getWorld().getName()));
+                    }
+                    lore.add(Message.LOCATION_X.build(loc.getX()));
+                    lore.add(Message.LOCATION_Y.build(loc.getY()));
+                    lore.add(Message.LOCATION_Z.build(loc.getZ()));
+                }
 
-                String deathReason = data.getString("data." + time + ".deathReason", "none");
-                Location location = data.getLocation("data." + time + ".location");
-                if (location == null) continue;
-
-                lore.add(Message.COMMAND_RESTORE_SPECIFIC_DEATH_REASON.build(deathReason));
-                lore.add(Message.LOCATION_WORLD.build(location.getWorld().getName()));
-                lore.add(Message.LOCATION_X.build(location.getX()));
-                lore.add(Message.LOCATION_Y.build(location.getY()));
-                lore.add(Message.LOCATION_Z.build(location.getZ()));
-
-                Component displayName = Message.COMMAND_RESTORE_SPECIFIC_DEATH_TIME.build(DATE_FORMAT.format(time));
-                ItemStack item = Buttons.getInventoryButton(Material.CHEST, target, type, location, time, displayName, lore);
+                Component displayName = Message.COMMAND_RESTORE_SPECIFIC_DEATH_TIME.build(DATE_FORMAT.format(summary.timestamp));
+                ItemStack item = Buttons.getInventoryButton(Material.CHEST, targetId, logType, summary.deathLocation, summary.timestamp, displayName, lore);
 
                 backupMenu.setItem(position, item);
             } catch (IndexOutOfBoundsException ignored) {
@@ -83,20 +93,52 @@ public class RollbackListMenu {
         }
 
         if (pageNumber == 1) {
-            ItemStack mainMenu = Buttons.getBackButton(Message.INVENTORY_ICONS_MAIN_MENU.build(), target, type, 0);
+            ItemStack mainMenu = Buttons.getBackButton(Message.INVENTORY_ICONS_MAIN_MENU.build(), targetId, logType, 0);
             backupMenu.setItem(position + 1, mainMenu);
         }
 
         if (pageNumber > 1) {
-            ItemStack previousPage = Buttons.getBackButton(Message.INVENTORY_ICONS_PAGE_PREVIOUS.build(), target, type, pageNumber - 1, Component.text("Page " + (pageNumber - 1)));
+            ItemStack previousPage = Buttons.getBackButton(Message.INVENTORY_ICONS_PAGE_PREVIOUS.build(), targetId, logType, pageNumber - 1, Component.text("Page " + (pageNumber - 1)));
             backupMenu.setItem(position + 1, previousPage);
         }
 
         if (pageNumber < pages) {
-            ItemStack nextPage = Buttons.getNextButton(Message.INVENTORY_ICONS_PAGE_NEXT.build(), target, type, pageNumber + 1, Component.text("Page " + (pageNumber + 1)));
+            ItemStack nextPage = Buttons.getNextButton(Message.INVENTORY_ICONS_PAGE_NEXT.build(), targetId, logType, pageNumber + 1, Component.text("Page " + (pageNumber + 1)));
             backupMenu.setItem(position + 7, nextPage);
         }
 
         return backupMenu;
+    }
+
+    private List<SummaryData> loadSummaries() {
+        try (Stream<Path> list = Files.list(this.playerDir)) {
+            ConfigurationOptions configOptions = ConfigurateUtil.getConfigOptions();
+            return list.map(path -> {
+                String fileName = path.getFileName().toString();
+                String fileNameNoSuffix = fileName.substring(0, fileName.length() - FILE_EXT.length());
+                long timestampMillis = Long.parseLong(fileNameNoSuffix);
+                try {
+                    BasicConfigurationNode node = GsonConfigurationLoader.builder()
+                            .path(path).defaultOptions(configOptions).build().load();
+                    return new SummaryData(timestampMillis, node);
+                } catch (ConfigurateException exception) {
+                    throw new RuntimeException("Error while loading summary " + fileName + " for " + this.targetId);
+                }
+            }).toList();
+        } catch (IOException exception) {
+            throw new RuntimeException("Error while listing saves for " + this.targetId + " type " + this.logType);
+        }
+    }
+
+    private record SummaryData(
+            Instant timestamp,
+            @Nullable DeathCauseInfo deathCause,
+            @Nullable Location deathLocation
+    ) {
+        private SummaryData(long timestampMillis, ConfigurationNode node) throws SerializationException {
+            this(Instant.ofEpochMilli(timestampMillis),
+                    node.node("death", "source").get(DeathCauseInfo.class),
+                    node.node("death", "location").get(Location.class));
+        }
     }
 }

@@ -8,7 +8,14 @@ import org.bukkit.Location;
 
 import static net.kyori.adventure.text.Component.space;
 import static net.kyori.adventure.text.Component.text;
-import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static net.kyori.adventure.text.format.NamedTextColor.AQUA;
+import static net.kyori.adventure.text.format.NamedTextColor.GOLD;
+import static net.kyori.adventure.text.format.NamedTextColor.GRAY;
+import static net.kyori.adventure.text.format.NamedTextColor.GREEN;
+import static net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE;
+import static net.kyori.adventure.text.format.NamedTextColor.RED;
+import static net.kyori.adventure.text.format.NamedTextColor.WHITE;
+import static net.kyori.adventure.text.format.NamedTextColor.YELLOW;
 
 public interface Message {
 
@@ -195,10 +202,10 @@ public interface Message {
             .color(GRAY)
             .build();
 
-    Args1<String> COMMAND_RESTORE_SPECIFIC_DEATH_REASON = reason -> translatable()
+    Args1<Component> COMMAND_RESTORE_SPECIFIC_DEATH_REASON = reason -> translatable()
             .key("ir.command.restore.specific.death.reason")
             .color(GOLD)
-            .args(text(reason, WHITE))
+            .args(text().color(WHITE).append(reason).build())
             .build();
 
     Args1<String> COMMAND_RESTORE_SPECIFIC_DEATH_TIME = time -> translatable()

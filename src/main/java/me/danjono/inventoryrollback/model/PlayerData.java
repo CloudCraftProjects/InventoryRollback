@@ -1,54 +1,67 @@
 package me.danjono.inventoryrollback.model;
 
 import me.danjono.inventoryrollback.InventoryRollbackMain;
-import org.bukkit.Bukkit;
+import me.danjono.inventoryrollback.saving.ConfigurateUtil;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.jspecify.annotations.Nullable;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-public class PlayerData {
+import static me.danjono.inventoryrollback.saving.ConfigurateUtil.FILE_EXT;
 
-    private static final File SAVES = new File(InventoryRollbackMain.getInstance().getDataFolder(), "saves");
-    private final FileConfiguration playerData;
-    private final File playerFile;
-    private final Object LOCK = (byte) 0;
+public final class PlayerData {
 
-    public PlayerData(OfflinePlayer player, LogType type) {
-        this(player.getUniqueId(), type);
+    private static final Path SAVES = InventoryRollbackMain.getInstance().getDataPath().resolve("saves");
+
+    private PlayerData() {
     }
 
-    public PlayerData(UUID uniqueId, LogType type) {
-        playerFile = type.getFile(SAVES, uniqueId);
-        playerData = YamlConfiguration.loadConfiguration(playerFile);
+    public static @Nullable ConfigurationNode loadNode(OfflinePlayer target, LogType logType, Instant timestamp) {
+        return loadNode(target.getUniqueId(), logType, timestamp);
     }
 
-    public File getFile() {
-        return playerFile;
+    public static @Nullable ConfigurationNode loadNode(UUID targetId, LogType logType, Instant timestamp) {
+        Path path = getPlayerDir(targetId, logType).resolve(timestamp.toEpochMilli() + FILE_EXT);
+        if (Files.notExists(path)) {
+            return null; // not found
+        }
+        return GsonConfigurationLoader.builder().defaultOptions(ConfigurateUtil.getConfigOptions())
+                .path(path).build().createNode();
     }
 
-    public FileConfiguration getData() {
-        return playerData;
+    public static boolean hasData(OfflinePlayer target, LogType logType) {
+        return hasData(target.getUniqueId(), logType);
     }
 
-    public void saveData(boolean async) {
-        synchronized (LOCK) {
-            Runnable runnable = () -> {
-                try {
-                    playerData.save(playerFile);
-                } catch (IOException exception) {
-                    exception.printStackTrace();
-                }
-            };
+    public static boolean hasData(UUID targetId, LogType logType) {
+        Path playerDir = getPlayerDir(targetId, logType);
+        try (Stream<Path> list = Files.list(playerDir)) {
+            return list.iterator().hasNext();
+        } catch (IOException exception) {
+            throw new RuntimeException("Error while checking for data of " + targetId, exception);
+        }
+    }
 
-            if (async) {
-                Bukkit.getScheduler().runTaskAsynchronously(InventoryRollbackMain.getInstance(), runnable);
-            } else {
-                runnable.run();
+    public static Path getPlayerDir(OfflinePlayer target, LogType logType) {
+        return getPlayerDir(target.getUniqueId(), logType);
+    }
+
+    public static Path getPlayerDir(UUID targetId, LogType logType) {
+        Path playerDir = SAVES.resolve(logType.getFolderName()).resolve(targetId.toString());
+        if (Files.notExists(playerDir)) {
+            try {
+                Files.createDirectories(playerDir);
+            } catch (IOException exception) {
+                throw new RuntimeException("Error while creating directory for player " + targetId, exception);
             }
         }
+        return playerDir;
     }
 }

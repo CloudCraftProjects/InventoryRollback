@@ -4,8 +4,6 @@ import me.danjono.inventoryrollback.i18n.Message;
 import me.danjono.inventoryrollback.items.Buttons;
 import me.danjono.inventoryrollback.model.LogType;
 import me.danjono.inventoryrollback.model.PlayerData;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -19,11 +17,11 @@ public record MainMenu(Player player, OfflinePlayer target) {
         Inventory mainMenu = Bukkit.createInventory(player, 9, InventoryType.MAIN_MENU.getName());
         UUID uuid = target.getUniqueId();
 
-        boolean joins = new PlayerData(target, LogType.JOIN).getFile().exists();
-        boolean quits = new PlayerData(target, LogType.QUIT).getFile().exists();
-        boolean deaths = new PlayerData(target, LogType.DEATH).getFile().exists();
-        boolean forceSaves = new PlayerData(target, LogType.FORCE).getFile().exists();
-        boolean worldChanges = new PlayerData(target, LogType.WORLD_CHANGE).getFile().exists();
+        boolean joins = PlayerData.hasData(this.target, LogType.JOIN);
+        boolean quits = PlayerData.hasData(this.target, LogType.QUIT);
+        boolean deaths = PlayerData.hasData(this.target, LogType.DEATH);
+        boolean forceSaves = PlayerData.hasData(this.target, LogType.FORCE);
+        boolean worldChanges = PlayerData.hasData(this.target, LogType.WORLD_CHANGE);
 
         if (!joins && !quits && !deaths && !worldChanges && !forceSaves) {
             player.sendMessage(Message.ERRORS_NO_BACKUP.build(target.getName()));

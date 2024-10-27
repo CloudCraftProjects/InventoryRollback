@@ -2,58 +2,61 @@ package me.danjono.inventoryrollback.saving;
 
 import me.danjono.inventoryrollback.model.LogType;
 import me.danjono.inventoryrollback.model.PlayerData;
-import me.danjono.inventoryrollback.utils.ItemByteSerializer;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.Location;
+import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.Base64;
 
-public record SaveInventory(Player player, LogType type, DamageCause cause, PlayerInventory inventory,
-                            Inventory enderChest) {
+import static me.danjono.inventoryrollback.saving.ConfigurateUtil.FILE_EXT;
+
+@NullMarked
+public record SaveInventory(
+        Player player,
+        LogType logType,
+        @Nullable DamageSource source,
+        PlayerInventory inventory,
+        Inventory enderChest
+) {
 
     public void createSave() {
-        PlayerData data = new PlayerData(player, type);
-        FileConfiguration config = data.getData();
-
-        long timestamp = System.currentTimeMillis();
-        int saves = config.getInt("saves"), maxSaves = type.getMaxSaves();
-
-        if (data.getFile().exists() && saves >= maxSaves) {
-            ConfigurationSection section = config.getConfigurationSection("data");
-
-            if (section != null) {
-                List<Long> saved = new ArrayList<>();
-
-                for (String key : section.getKeys(false)) {
-                    saved.add(Long.parseLong(key));
-                }
-
-                saved.sort(Long::compare);
-
-                while (saved.size() >= maxSaves - 1) {
-                    config.set("data." + saved.remove(0), null);
-                }
-
-                saves = saved.size();
-            }
+        Path path = PlayerData.getPlayerDir(this.player, this.logType)
+                .resolve(System.currentTimeMillis() + FILE_EXT);
+        try {
+            GsonConfigurationLoader.builder()
+                    .path(path).indent(0).build()
+                    .save(this.asNode());
+        } catch (ConfigurateException exception) {
+            throw new IllegalStateException("Error while creating save of " + this.logType + " for " + this.player);
         }
+    }
 
-        config.set("data." + timestamp + ".enderchest", ItemByteSerializer.getItemsAsBase64(enderChest.getContents()));
-        config.set("data." + timestamp + ".inventory", ItemByteSerializer.getItemsAsBase64(inventory.getContents()));
-        config.set("data." + timestamp + ".deathReason", cause == null ? null : cause.name());
-        config.set("data." + timestamp + ".experience", player.calculateTotalExperiencePoints());
-        config.set("data." + timestamp + ".saturation", player.getSaturation());
-        config.set("data." + timestamp + ".location", player.getLocation());
-        config.set("data." + timestamp + ".hunger", player.getFoodLevel());
-        config.set("data." + timestamp + ".health", player.getHealth());
-        config.set("data." + timestamp + ".type", type.name());
-        config.set("saves", saves + 1);
+    private static String serializeItems(@Nullable ItemStack[] stacks) {
+        byte[] bytes = ItemStack.serializeItemsAsBytes(stacks);
+        return Base64.getEncoder().encodeToString(bytes);
+    }
 
-        data.saveData(true);
+    public ConfigurationNode asNode() throws SerializationException {
+        ConfigurationNode node = ConfigurateUtil.createRootNode();
+        node.node("inventory").set(String.class, serializeItems(this.inventory.getContents()));
+        node.node("ender-chest").set(String.class, serializeItems(this.enderChest.getContents()));
+        node.node("death", "source").set(DeathCauseInfo.class, DeathCauseInfo.fromSource(this.source));
+        node.node("death", "location").set(Location.class, this.player.getLocation());
+        node.node("health").set(double.class, this.player.getHealth());
+        node.node("food", "hunger").set(int.class, this.player.getFoodLevel());
+        node.node("food", "saturation").set(float.class, this.player.getSaturation());
+        node.node("experience-points").set(int.class, this.player.calculateTotalExperiencePoints());
+        node.node("player").set(EntityInfo.class, EntityInfo.fromEntity(this.player));
+        return node;
     }
 }

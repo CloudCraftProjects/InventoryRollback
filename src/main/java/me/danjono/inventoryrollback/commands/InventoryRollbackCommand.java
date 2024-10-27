@@ -13,7 +13,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,7 +91,7 @@ public class InventoryRollbackCommand extends Command {
                         return true;
                     }
 
-                    new SaveInventory(target, LogType.FORCE, EntityDamageEvent.DamageCause.CUSTOM, target.getInventory(), target.getEnderChest()).createSave();
+                    new SaveInventory(target, LogType.FORCE, null, target.getInventory(), target.getEnderChest()).createSave();
                     Message.COMMAND_FORCE_SAVE_SUCCESS.send(sender, target.getName());
                 } else {
                     Message.ERRORS_NO_PERMISSION.send(sender);

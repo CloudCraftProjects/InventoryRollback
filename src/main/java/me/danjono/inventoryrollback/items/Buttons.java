@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -91,7 +92,7 @@ public class Buttons {
         return new PersistentData(button).setUniqueId(uuid).setLogType(type).getItem();
     }
 
-    public static ItemStack getInventoryButton(Material material, UUID uuid, LogType type, Location location, long timestamp, Component displayName, List<Component> lore) {
+    public static ItemStack getInventoryButton(Material material, UUID uuid, LogType type, Location location, Instant timestamp, Component displayName, List<Component> lore) {
         ItemStack item = new ItemStack(material);
 
         ItemMeta meta = item.getItemMeta();
@@ -125,7 +126,7 @@ public class Buttons {
         return skull;
     }
 
-    public static ItemStack getTeleportButton(UUID uuid, LogType type, long timestamp, Location location) {
+    public static ItemStack getTeleportButton(UUID uuid, LogType type, Instant timestamp, Location location) {
         ItemStack item = ButtonType.TELEPORT.asItem();
 
         ItemMeta meta = item.getItemMeta();
@@ -135,7 +136,7 @@ public class Buttons {
         return new PersistentData(item).setUniqueId(uuid).setLogType(type).setTimestamp(timestamp).setLocation(location).getItem();
     }
 
-    public static ItemStack getEnderChestButton(UUID uuid, LogType type, long timestamp) {
+    public static ItemStack getEnderChestButton(UUID uuid, LogType type, Instant timestamp) {
         ItemStack item = ButtonType.ENDER_CHEST.asItem();
 
         ItemMeta meta = item.getItemMeta();

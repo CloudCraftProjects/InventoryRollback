@@ -13,7 +13,10 @@ repositories {
 }
 
 dependencies {
-    api("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
+
+    // shaded by paper
+    compileOnly("org.spongepowered:configurate-gson:4.1.2")
 }
 
 java {

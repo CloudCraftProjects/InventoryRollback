@@ -7,7 +7,9 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.jspecify.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public class PersistentData {
@@ -70,9 +72,11 @@ public class PersistentData {
     }
 
     public PersistentData setLocation(Location location) {
-        ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(LOCATION_KEY, LocationPersistentDataType.INSTANCE, location);
-        item.setItemMeta(meta);
+        if (location != null) {
+            ItemMeta meta = item.getItemMeta();
+            meta.getPersistentDataContainer().set(LOCATION_KEY, LocationPersistentDataType.INSTANCE, location);
+            item.setItemMeta(meta);
+        }
         return this;
     }
 
@@ -128,14 +132,14 @@ public class PersistentData {
         return item.getItemMeta().getPersistentDataContainer().has(TIMESTAMP_KEY, PersistentDataType.LONG);
     }
 
-    public long getTimestamp() {
+    public @Nullable Instant getTimestamp() {
         Long data = item.getItemMeta().getPersistentDataContainer().get(TIMESTAMP_KEY, PersistentDataType.LONG);
-        return data == null ? -1 : data;
+        return data == null ? null : Instant.ofEpochMilli(data);
     }
 
-    public PersistentData setTimestamp(long timestamp) {
+    public PersistentData setTimestamp(Instant timestamp) {
         ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(TIMESTAMP_KEY, PersistentDataType.LONG, timestamp);
+        meta.getPersistentDataContainer().set(TIMESTAMP_KEY, PersistentDataType.LONG, timestamp.toEpochMilli());
         item.setItemMeta(meta);
         return this;
     }

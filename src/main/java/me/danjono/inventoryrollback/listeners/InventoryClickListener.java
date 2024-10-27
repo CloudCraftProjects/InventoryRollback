@@ -16,7 +16,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,7 +24,9 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.spongepowered.configurate.ConfigurationNode;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public class InventoryClickListener extends Buttons implements Listener {
@@ -75,20 +76,22 @@ public class InventoryClickListener extends Buttons implements Listener {
                             Material material = item.getType();
                             if (material.equals(Material.CHEST)) {
                                 UUID uuid = persistent.getUniqueId();
-                                long timestamp = persistent.getTimestamp();
+                                Instant timestamp = persistent.getTimestamp();
+                                if (timestamp == null) return;
                                 LogType type = persistent.getLogType();
                                 Location location = persistent.getLocation();
 
-                                FileConfiguration data = new PlayerData(uuid, type).getData();
-                                RestoreInventory restore = new RestoreInventory(data, timestamp);
+                                ConfigurationNode node = PlayerData.loadNode(uuid, type, timestamp);
+                                if (node == null) return;
+                                RestoreInventory restore = new RestoreInventory(timestamp, node);
 
-                                ItemStack[] enderChest = restore.retrieveEnderChestInventory();
-                                ItemStack[] inventory = restore.retrieveMainInventory();
+                                ItemStack[] enderChest = restore.enderChest();
+                                ItemStack[] inventory = restore.inventory();
 
-                                float saturation = restore.getSaturation();
-                                int experience = restore.getExperience();
-                                double health = restore.getHealth();
-                                int hunger = restore.getHunger();
+                                float saturation = restore.saturation();
+                                int experience = restore.expPoints();
+                                double health = restore.health();
+                                int hunger = restore.hunger();
 
                                 player.openInventory(new BackupMenu(player, uuid, type, timestamp, inventory, enderChest, location, health, hunger, saturation, experience).showItems());
                             } else if (material.equals(ButtonType.PAGE_SELECTOR.material())) {
@@ -116,10 +119,12 @@ public class InventoryClickListener extends Buttons implements Listener {
 
                             OfflinePlayer target = Bukkit.getOfflinePlayer(persistent.getUniqueId());
                             LogType type = persistent.getLogType();
-                            long timestamp = persistent.getTimestamp();
+                            Instant timestamp = persistent.getTimestamp();
+                            if (timestamp == null) return;
 
-                            FileConfiguration config = new PlayerData(target, type).getData();
-                            RestoreInventory restore = new RestoreInventory(config, timestamp);
+                            ConfigurationNode node = PlayerData.loadNode(target, type, timestamp);
+                            if (node == null) return;
+                            RestoreInventory restore = new RestoreInventory(timestamp, node);
 
                             Material material = item.getType();
                             if (material.equals(ButtonType.PAGE_SELECTOR.material())) {
@@ -136,7 +141,7 @@ public class InventoryClickListener extends Buttons implements Listener {
                             } else if (material.equals(ButtonType.ENDER_CHEST.material())) {
                                 Player onlineTarget = target.getPlayer();
                                 if (onlineTarget != null) {
-                                    ItemStack[] enderChest = restore.retrieveEnderChestInventory();
+                                    ItemStack[] enderChest = restore.enderChest();
                                     if (isInventoryEmpty(onlineTarget.getEnderChest())) {
                                         onlineTarget.getEnderChest().setContents(enderChest);
 
@@ -184,7 +189,8 @@ public class InventoryClickListener extends Buttons implements Listener {
                             event.setCancelled(false);
                         }
                     }
-                    default -> throw new IllegalStateException(InventoryType.class + " " + inventoryType + "is unknown!");
+                    default ->
+                            throw new IllegalStateException(InventoryType.class + " " + inventoryType + "is unknown!");
                 }
             }
         }
