@@ -127,11 +127,11 @@ public class RollbackListMenu {
                             .path(path).defaultOptions(configOptions).build().load();
                     return new SummaryData(timestampMillis, node);
                 } catch (ConfigurateException exception) {
-                    throw new RuntimeException("Error while loading summary " + fileName + " for " + this.targetId);
+                    throw new RuntimeException("Error while loading summary " + fileName + " for " + this.targetId, exception);
                 }
             }).collect(Collectors.toList());
         } catch (IOException exception) {
-            throw new RuntimeException("Error while listing saves for " + this.targetId + " type " + this.logType);
+            throw new RuntimeException("Error while listing saves for " + this.targetId + " type " + this.logType, exception);
         }
     }
 
