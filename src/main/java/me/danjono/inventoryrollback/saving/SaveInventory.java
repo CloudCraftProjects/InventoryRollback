@@ -2,6 +2,7 @@ package me.danjono.inventoryrollback.saving;
 
 import me.danjono.inventoryrollback.model.LogType;
 import me.danjono.inventoryrollback.model.PlayerData;
+import me.danjono.inventoryrollback.utils.ItemByteSerializer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -12,9 +13,8 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.danjono.inventoryrollback.utils.ByteSerializer.ITEMSTACK_SERIALIZER;
-
-public record SaveInventory(Player player, LogType type, DamageCause cause, PlayerInventory inventory, Inventory enderChest) {
+public record SaveInventory(Player player, LogType type, DamageCause cause, PlayerInventory inventory,
+                            Inventory enderChest) {
 
     public void createSave() {
         PlayerData data = new PlayerData(player, type);
@@ -43,9 +43,8 @@ public record SaveInventory(Player player, LogType type, DamageCause cause, Play
             }
         }
 
-        config.set("data." + timestamp + ".enderchest", ITEMSTACK_SERIALIZER.objectArrayToBase64(enderChest.getContents()));
-        config.set("data." + timestamp + ".armor", ITEMSTACK_SERIALIZER.objectArrayToBase64(inventory.getArmorContents()));
-        config.set("data." + timestamp + ".inventory", ITEMSTACK_SERIALIZER.objectArrayToBase64(inventory.getContents()));
+        config.set("data." + timestamp + ".enderchest", ItemByteSerializer.getItemsAsBase64(enderChest.getContents()));
+        config.set("data." + timestamp + ".inventory", ItemByteSerializer.getItemsAsBase64(inventory.getContents()));
         config.set("data." + timestamp + ".deathReason", cause == null ? null : cause.name());
         config.set("data." + timestamp + ".experience", player.calculateTotalExperiencePoints());
         config.set("data." + timestamp + ".saturation", player.getSaturation());

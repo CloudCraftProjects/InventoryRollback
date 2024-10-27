@@ -10,8 +10,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.UUID;
 
-import static me.danjono.inventoryrollback.utils.ByteSerializer.LOCATION_SERIALIZER;
-
 public class PersistentData {
 
     private static final NamespacedKey UUID_KEY = new NamespacedKey(InventoryRollbackMain.getInstance(), "uuid");
@@ -68,12 +66,12 @@ public class PersistentData {
     }
 
     public Location getLocation() {
-        return LOCATION_SERIALIZER.objectFromByteArray(item.getItemMeta().getPersistentDataContainer().get(LOCATION_KEY, PersistentDataType.BYTE_ARRAY));
+        return item.getItemMeta().getPersistentDataContainer().get(LOCATION_KEY, LocationPersistentDataType.INSTANCE);
     }
 
     public PersistentData setLocation(Location location) {
         ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(LOCATION_KEY, PersistentDataType.BYTE_ARRAY, LOCATION_SERIALIZER.objectToByteArray(location));
+        meta.getPersistentDataContainer().set(LOCATION_KEY, LocationPersistentDataType.INSTANCE, location);
         item.setItemMeta(meta);
         return this;
     }

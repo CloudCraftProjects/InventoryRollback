@@ -29,15 +29,15 @@ public class Buttons {
     static {
         NEXT_PATTERNS = ImmutableList.of(
                 new Pattern(DyeColor.BLACK, PatternType.BASE),
-                new Pattern(DyeColor.WHITE, PatternType.RHOMBUS_MIDDLE),
+                new Pattern(DyeColor.WHITE, PatternType.RHOMBUS),
                 new Pattern(DyeColor.BLACK, PatternType.HALF_VERTICAL),
                 new Pattern(DyeColor.GRAY, PatternType.BORDER)
         );
 
         BACK_PATTERNS = ImmutableList.of(
                 new Pattern(DyeColor.BLACK, PatternType.BASE),
-                new Pattern(DyeColor.WHITE, PatternType.RHOMBUS_MIDDLE),
-                new Pattern(DyeColor.BLACK, PatternType.HALF_VERTICAL_MIRROR),
+                new Pattern(DyeColor.WHITE, PatternType.RHOMBUS),
+                new Pattern(DyeColor.BLACK, PatternType.HALF_VERTICAL_RIGHT),
                 new Pattern(DyeColor.GRAY, PatternType.BORDER)
         );
     }
@@ -46,7 +46,7 @@ public class Buttons {
         ItemStack button = ButtonType.PAGE_SELECTOR.asItem();
         BannerMeta meta = (BannerMeta) button.getItemMeta();
 
-        meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
         meta.setPatterns(NEXT_PATTERNS);
         meta.lore(Arrays.asList(lore));
         meta.displayName(displayName);
@@ -59,7 +59,7 @@ public class Buttons {
         ItemStack button = ButtonType.PAGE_SELECTOR.asItem();
         BannerMeta meta = (BannerMeta) button.getItemMeta();
 
-        meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
         meta.setPatterns(BACK_PATTERNS);
         meta.lore(Arrays.asList(lore));
         meta.displayName(displayName);
@@ -83,7 +83,7 @@ public class Buttons {
         ItemStack button = ButtonType.PAGE_SELECTOR.asItem();
         BannerMeta meta = (BannerMeta) button.getItemMeta();
 
-        meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
         meta.setPatterns(BACK_PATTERNS);
         meta.displayName(displayName);
         button.setItemMeta(meta);
