@@ -2,7 +2,8 @@ plugins {
     id("java-library")
     id("maven-publish")
 
-    id ("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
+    id("xyz.jpenilla.run-paper") version "2.3.1"
 }
 
 group = "me.danjono"
@@ -40,10 +41,14 @@ tasks {
         options.compilerArgs.add("-Xlint:unchecked")
         options.compilerArgs.add("-Xlint:deprecation")
     }
+
+    runServer {
+        minecraftVersion("1.21.1")
+    }
 }
 
 bukkit {
     main = "me.danjono.inventoryrollback.InventoryRollbackMain"
     authors = listOf("danjono", "booky10")
-    apiVersion = "1.19"
+    apiVersion = "1.21.1"
 }
