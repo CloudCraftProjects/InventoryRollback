@@ -18,7 +18,7 @@ public final class ConfigurateUtil {
             .register(EntityInfo.class, EntityInfo.SERIALIZER)
             .build();
     private static final ConfigurationOptions CONFIG_OPTIONS = ConfigurationOptions.defaults()
-            .serializers(SERIALIZERS);
+            .serializers(builder -> builder.registerAll(SERIALIZERS));
 
     private ConfigurateUtil() {
     }
