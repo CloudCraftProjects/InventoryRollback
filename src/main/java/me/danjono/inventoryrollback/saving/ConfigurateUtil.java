@@ -17,14 +17,14 @@ public final class ConfigurateUtil {
             .register(DeathCauseInfo.class, DeathCauseInfo.SERIALIZER)
             .register(EntityInfo.class, EntityInfo.SERIALIZER)
             .build();
-    private static final ConfigurationOptions CONFIG_OPTIONS = ConfigurationOptions.defaults()
-            .serializers(builder -> builder.registerAll(SERIALIZERS));
+    private static final ConfigurationOptions CONFIG_OPTIONS = getConfigOptions();
 
     private ConfigurateUtil() {
     }
 
     public static ConfigurationOptions getConfigOptions() {
-        return ConfigurationOptions.defaults().serializers(SERIALIZERS);
+        return ConfigurationOptions.defaults()
+                .serializers(builder -> builder.registerAll(SERIALIZERS));
     }
 
     public static ConfigurationNode createRootNode() {
