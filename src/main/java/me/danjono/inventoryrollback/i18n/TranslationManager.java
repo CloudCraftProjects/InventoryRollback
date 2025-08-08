@@ -3,16 +3,19 @@ package me.danjono.inventoryrollback.i18n;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
-import net.kyori.adventure.util.UTF8ResourceBundleControl;
+import net.kyori.adventure.translation.TranslationStore;
 
+import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
+
+import static net.kyori.adventure.util.UTF8ResourceBundleControl.utf8ResourceBundleControl;
 
 public class TranslationManager {
 
     public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
     private static final TranslationManager INSTANCE = new TranslationManager();
-    private ColoredTranslationRegistry registry;
+    private TranslationStore<MessageFormat> store;
 
     private TranslationManager() {
     }
@@ -22,16 +25,16 @@ public class TranslationManager {
     }
 
     public void reload() {
-        if (registry != null) {
-            GlobalTranslator.translator().removeSource(registry);
+        if (this.store != null) {
+            GlobalTranslator.translator().removeSource(this.store);
         }
+        this.store = TranslationStore.messageFormat(Key.key("ir", "main"));
+        this.store.defaultLocale(DEFAULT_LOCALE);
 
-        registry = new ColoredTranslationRegistry(Key.key("ir", "main"));
-        registry.defaultLocale(DEFAULT_LOCALE);
+        ResourceBundle bundle = ResourceBundle.getBundle("ir", DEFAULT_LOCALE, utf8ResourceBundleControl());
+        this.store.registerAll(DEFAULT_LOCALE, bundle.keySet(),
+                key -> new MessageFormat(bundle.getString(key)));
 
-        ResourceBundle bundle = ResourceBundle.getBundle("ir", DEFAULT_LOCALE, UTF8ResourceBundleControl.get());
-        registry.registerAll(DEFAULT_LOCALE, bundle, false);
-
-        GlobalTranslator.translator().addSource(registry);
+        GlobalTranslator.translator().addSource(this.store);
     }
 }

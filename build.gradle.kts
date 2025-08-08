@@ -7,17 +7,17 @@ plugins {
 }
 
 group = "me.danjono"
-version = "1.6.1-SNAPSHOT"
+version = "1.6.2-SNAPSHOT"
 
 repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
 
     sequenceOf(
-        "org.spongepowered:configurate-gson:4.1.2",
+        "org.spongepowered:configurate-gson:4.2.0",
     ).forEach {
         compileOnly(it)
         library(it)
@@ -48,12 +48,12 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.21.4")
+        minecraftVersion("1.21.8")
     }
 }
 
 bukkit {
     main = "me.danjono.inventoryrollback.InventoryRollbackMain"
     authors = listOf("danjono", "booky10")
-    apiVersion = "1.21.4"
+    apiVersion = "1.21.8"
 }
