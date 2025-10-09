@@ -108,7 +108,7 @@ public class Buttons {
         return new PersistentData(item).setUniqueId(uuid).setLogType(type).setHunger(hunger).setSaturation(saturation).getItem();
     }
 
-    public static ItemStack getExperienceButton(UUID uuid, LogType logType, int experience) {
+    public static ItemStack getExperienceButton(UUID uuid, LogType logType, long experience) {
         ItemStack item = ButtonType.EXPERIENCE.asItem();
         item.setData(DataComponentTypes.CUSTOM_NAME, Message.INVENTORY_ICONS_RESTORE_EXPERIENCE_NAME.build());
         item.setData(DataComponentTypes.LORE, ItemLore.lore()

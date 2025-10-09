@@ -58,7 +58,7 @@ public record SaveInventory(
         node.node("health").set(double.class, this.player.getHealth());
         node.node("food", "hunger").set(int.class, this.player.getFoodLevel());
         node.node("food", "saturation").set(float.class, this.player.getSaturation());
-        node.node("experience-points").set(int.class, this.player.calculateTotalExperiencePoints());
+        node.node("experience-points").set(long.class, this.player.calculateTotalExperiencePoints());
         node.node("player").set(EntityInfo.class, EntityInfo.fromEntity(this.player));
         return node;
     }

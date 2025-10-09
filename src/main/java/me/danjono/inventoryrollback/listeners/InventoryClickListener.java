@@ -89,7 +89,7 @@ public class InventoryClickListener extends Buttons implements Listener {
                                 ItemStack[] inventory = restore.inventory();
 
                                 float saturation = restore.saturation();
-                                int experience = restore.expPoints();
+                                long experience = restore.expPoints();
                                 double health = restore.health();
                                 int hunger = restore.hunger();
 
@@ -176,7 +176,8 @@ public class InventoryClickListener extends Buttons implements Listener {
                             } else if (material.equals(ButtonType.EXPERIENCE.material())) {
                                 Player onlineTarget = target.getPlayer();
                                 if (onlineTarget != null) {
-                                    onlineTarget.setExperienceLevelAndProgress(persistent.getExperience());
+                                    // TODO this is a stupid method, why is this an integer?
+                                    onlineTarget.setExperienceLevelAndProgress((int) persistent.getExperience());
 
                                     Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_SELF.send(player, target.getName());
                                     Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_TARGET.send(onlineTarget, player.getName());

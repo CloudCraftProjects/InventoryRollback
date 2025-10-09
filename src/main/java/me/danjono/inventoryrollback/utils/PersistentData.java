@@ -113,17 +113,17 @@ public class PersistentData {
     }
 
     public boolean hasExperience() {
-        return item.getItemMeta().getPersistentDataContainer().has(EXPERIENCE_KEY, PersistentDataType.INTEGER);
+        return item.getItemMeta().getPersistentDataContainer().has(EXPERIENCE_KEY, PersistentDataType.LONG);
     }
 
-    public int getExperience() {
-        Integer data = item.getItemMeta().getPersistentDataContainer().get(EXPERIENCE_KEY, PersistentDataType.INTEGER);
+    public long getExperience() {
+        Long data = item.getItemMeta().getPersistentDataContainer().get(EXPERIENCE_KEY, PersistentDataType.LONG);
         return data == null ? -1 : data;
     }
 
-    public PersistentData setExperience(int experience) {
+    public PersistentData setExperience(long experience) {
         ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(EXPERIENCE_KEY, PersistentDataType.INTEGER, experience);
+        meta.getPersistentDataContainer().set(EXPERIENCE_KEY, PersistentDataType.LONG, experience);
         item.setItemMeta(meta);
         return this;
     }

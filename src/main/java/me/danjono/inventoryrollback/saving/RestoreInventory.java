@@ -15,7 +15,7 @@ public record RestoreInventory(
         double health,
         int hunger,
         float saturation,
-        int expPoints
+        long expPoints
 ) {
 
     public RestoreInventory(Instant timestamp, ConfigurationNode node) {
@@ -25,7 +25,7 @@ public record RestoreInventory(
                 node.node("health").getDouble(),
                 node.node("food", "hunger").getInt(),
                 node.node("food", "saturation").getInt(),
-                node.node("experience-points").getInt()
+                node.node("experience-points").getLong()
         );
     }
 

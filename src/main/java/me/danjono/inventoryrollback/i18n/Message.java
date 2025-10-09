@@ -279,7 +279,7 @@ public interface Message {
             .color(GREEN)
             .build();
 
-    Args1<Integer> INVENTORY_ICONS_RESTORE_EXPERIENCE_LORE = level -> translatable()
+    Args1<Long> INVENTORY_ICONS_RESTORE_EXPERIENCE_LORE = level -> translatable()
             .key("ir.inventory.icons.restore.experience.lore")
             .color(WHITE)
             .args(text(level, WHITE))

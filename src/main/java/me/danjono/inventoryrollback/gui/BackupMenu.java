@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public record BackupMenu(
         Player player, UUID uuid, LogType type, Instant timestamp, ItemStack[] inventory,
-        ItemStack[] enderChest, Location location, double health, int hunger, float saturation, int experience
+        ItemStack[] enderChest, Location location, double health, int hunger, float saturation, long experience
 ) {
 
     public Inventory showItems() {
