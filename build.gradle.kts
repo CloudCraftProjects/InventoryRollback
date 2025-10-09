@@ -3,7 +3,7 @@ plugins {
     id("maven-publish")
 
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0"
-    id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("xyz.jpenilla.run-paper") version "3.0.0"
 }
 
 group = "me.danjono"
@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
 
     sequenceOf(
         "org.spongepowered:configurate-gson:4.2.0",
@@ -48,12 +48,12 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.21.8")
+        minecraftVersion("1.21.10")
     }
 }
 
 bukkit {
     main = "me.danjono.inventoryrollback.InventoryRollbackMain"
     authors = listOf("danjono", "booky10")
-    apiVersion = "1.21.8"
+    apiVersion = "1.21.9"
 }
