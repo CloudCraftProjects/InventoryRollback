@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "me.danjono"
-version = "1.6.2-SNAPSHOT"
+version = "1.6.3-SNAPSHOT"
 
 repositories {
     maven("https://repo.papermc.io/repository/maven-public/")
