@@ -38,7 +38,7 @@ public record SaveInventory(
                     .path(path).indent(0).build()
                     .save(this.asNode());
         } catch (ConfigurateException exception) {
-            throw new IllegalStateException("Error while creating save of " + this.logType + " for " + this.player);
+            throw new IllegalStateException("Error while creating save of " + this.logType + " for " + this.player, exception);
         }
         InventoryRollbackMain.getInstance().getComponentLogger()
                 .info("Created {} snapshot for {}", this.logType.name(), this.player.teamDisplayName());
@@ -58,7 +58,7 @@ public record SaveInventory(
         node.node("health").set(double.class, this.player.getHealth());
         node.node("food", "hunger").set(int.class, this.player.getFoodLevel());
         node.node("food", "saturation").set(float.class, this.player.getSaturation());
-        node.node("experience-points").set(long.class, this.player.calculateTotalExperiencePoints());
+        node.node("experience-points").set(long.class, (long) this.player.calculateTotalExperiencePoints());
         node.node("player").set(EntityInfo.class, EntityInfo.fromEntity(this.player));
         return node;
     }
