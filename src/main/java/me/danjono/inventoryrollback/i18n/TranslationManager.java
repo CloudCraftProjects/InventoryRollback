@@ -9,8 +9,6 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-import static net.kyori.adventure.util.UTF8ResourceBundleControl.utf8ResourceBundleControl;
-
 public class TranslationManager {
 
     public static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
@@ -31,7 +29,7 @@ public class TranslationManager {
         this.store = TranslationStore.messageFormat(Key.key("ir", "main"));
         this.store.defaultLocale(DEFAULT_LOCALE);
 
-        ResourceBundle bundle = ResourceBundle.getBundle("ir", DEFAULT_LOCALE, utf8ResourceBundleControl());
+        ResourceBundle bundle = ResourceBundle.getBundle("ir", DEFAULT_LOCALE);
         this.store.registerAll(DEFAULT_LOCALE, bundle.keySet(),
                 key -> new MessageFormat(bundle.getString(key)));
 

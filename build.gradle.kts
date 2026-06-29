@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 
     sequenceOf(
         "org.spongepowered:configurate-gson:4.2.0",
@@ -45,6 +45,7 @@ tasks {
         options.encoding = Charsets.UTF_8.name()
         options.compilerArgs.add("-Xlint:unchecked")
         options.compilerArgs.add("-Xlint:deprecation")
+        options.compilerArgs.add("-Xlint:removal")
     }
 
     runServer {
