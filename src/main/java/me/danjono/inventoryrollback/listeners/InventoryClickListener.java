@@ -1,5 +1,6 @@
 package me.danjono.inventoryrollback.listeners;
 
+import me.danjono.inventoryrollback.InventoryRollbackMain;
 import me.danjono.inventoryrollback.gui.BackupMenu;
 import me.danjono.inventoryrollback.gui.InventoryType;
 import me.danjono.inventoryrollback.gui.MainMenu;
@@ -141,35 +142,44 @@ public class InventoryClickListener extends Buttons implements Listener {
                                     if (node == null) return;
                                     RestoreInventory restore = new RestoreInventory(timestamp, node);
                                     ItemStack[] enderChest = restore.enderChest();
-                                    if (isInventoryEmpty(onlineTarget.getEnderChest())) {
-                                        onlineTarget.getEnderChest().setContents(enderChest);
+                                    runOnTarget(onlineTarget, () -> {
+                                        if (isInventoryEmpty(onlineTarget.getEnderChest())) {
+                                            onlineTarget.getEnderChest().setContents(enderChest);
 
-                                        Message.COMMAND_RESTORE_ENDER_CHEST_SUCCESS_SELF.send(player, target.getName());
-                                        Message.COMMAND_RESTORE_ENDER_CHEST_SUCCESS_TARGET.send(onlineTarget, player.getName());
-                                    } else {
-                                        Message.COMMAND_RESTORE_ENDER_CHEST_ERRORED_NOT_EMPTY.send(player, target.getName());
-                                    }
+                                            Message.COMMAND_RESTORE_ENDER_CHEST_SUCCESS_SELF.send(player, target.getName());
+                                            Message.COMMAND_RESTORE_ENDER_CHEST_SUCCESS_TARGET.send(onlineTarget, player.getName());
+                                        } else {
+                                            Message.COMMAND_RESTORE_ENDER_CHEST_ERRORED_NOT_EMPTY.send(player, target.getName());
+                                        }
+                                    }, () -> Message.COMMAND_RESTORE_ENDER_CHEST_ERRORED_NOT_ONLINE.send(player, target.getName()));
                                 } else {
                                     Message.COMMAND_RESTORE_ENDER_CHEST_ERRORED_NOT_ONLINE.send(player, target.getName());
                                 }
                             } else if (material.equals(ButtonType.HEALTH.material())) {
                                 Player onlineTarget = target.getPlayer();
                                 if (onlineTarget != null) {
-                                    onlineTarget.setHealth(persistent.getHealth());
+                                    double health = persistent.getHealth();
+                                    runOnTarget(onlineTarget, () -> {
+                                        onlineTarget.setHealth(health);
 
-                                    Message.COMMAND_RESTORE_HEALTH_SUCCESS_SELF.send(player, target.getName());
-                                    Message.COMMAND_RESTORE_HEALTH_SUCCESS_TARGET.send(onlineTarget, player.getName());
+                                        Message.COMMAND_RESTORE_HEALTH_SUCCESS_SELF.send(player, target.getName());
+                                        Message.COMMAND_RESTORE_HEALTH_SUCCESS_TARGET.send(onlineTarget, player.getName());
+                                    }, () -> Message.COMMAND_RESTORE_HEALTH_ERRORED.send(player, target.getName()));
                                 } else {
                                     Message.COMMAND_RESTORE_HEALTH_ERRORED.send(player, target.getName());
                                 }
                             } else if (material.equals(ButtonType.HUNGER.material())) {
                                 Player onlineTarget = target.getPlayer();
                                 if (onlineTarget != null) {
-                                    onlineTarget.setFoodLevel(persistent.getHunger());
-                                    onlineTarget.setSaturation(persistent.getSaturation());
+                                    int hunger = persistent.getHunger();
+                                    float saturation = persistent.getSaturation();
+                                    runOnTarget(onlineTarget, () -> {
+                                        onlineTarget.setFoodLevel(hunger);
+                                        onlineTarget.setSaturation(saturation);
 
-                                    Message.COMMAND_RESTORE_HUNGER_SUCCESS_SELF.send(player, target.getName());
-                                    Message.COMMAND_RESTORE_HUNGER_SUCCESS_TARGET.send(onlineTarget, player.getName());
+                                        Message.COMMAND_RESTORE_HUNGER_SUCCESS_SELF.send(player, target.getName());
+                                        Message.COMMAND_RESTORE_HUNGER_SUCCESS_TARGET.send(onlineTarget, player.getName());
+                                    }, () -> Message.COMMAND_RESTORE_HUNGER_ERRORED.send(player, target.getName()));
                                 } else {
                                     Message.COMMAND_RESTORE_HUNGER_ERRORED.send(player, target.getName());
                                 }
@@ -177,10 +187,13 @@ public class InventoryClickListener extends Buttons implements Listener {
                                 Player onlineTarget = target.getPlayer();
                                 if (onlineTarget != null) {
                                     // TODO this is a stupid method, why is this an integer?
-                                    onlineTarget.setExperienceLevelAndProgress((int) persistent.getExperience());
+                                    int experience = (int) persistent.getExperience();
+                                    runOnTarget(onlineTarget, () -> {
+                                        onlineTarget.setExperienceLevelAndProgress(experience);
 
-                                    Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_SELF.send(player, target.getName());
-                                    Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_TARGET.send(onlineTarget, player.getName());
+                                        Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_SELF.send(player, target.getName());
+                                        Message.COMMAND_RESTORE_EXPERIENCE_SUCCESS_TARGET.send(onlineTarget, player.getName());
+                                    }, () -> Message.COMMAND_RESTORE_EXPERIENCE_ERRORED.send(player, target.getName()));
                                 } else {
                                     Message.COMMAND_RESTORE_EXPERIENCE_ERRORED.send(player, target.getName());
                                 }
@@ -193,6 +206,12 @@ public class InventoryClickListener extends Buttons implements Listener {
                             throw new IllegalStateException(InventoryType.class + " " + inventoryType + "is unknown!");
                 }
             }
+        }
+    }
+
+    private void runOnTarget(Player onlineTarget, Runnable action, Runnable errored) {
+        if (onlineTarget.getScheduler().run(InventoryRollbackMain.getInstance(), task -> action.run(), errored) == null) {
+            errored.run();
         }
     }
 

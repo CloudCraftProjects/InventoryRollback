@@ -57,4 +57,5 @@ bukkit {
     main = "me.danjono.inventoryrollback.InventoryRollbackMain"
     authors = listOf("danjono", "booky10")
     apiVersion = "1.21.9"
+    foliaSupported = true
 }

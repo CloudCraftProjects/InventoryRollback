@@ -91,8 +91,12 @@ public class InventoryRollbackCommand extends Command {
                         return true;
                     }
 
-                    new SaveInventory(target, LogType.FORCE, null, target.getInventory(), target.getEnderChest()).createSave();
-                    Message.COMMAND_FORCE_SAVE_SUCCESS.send(sender, target.getName());
+                    if (target.getScheduler().run(InventoryRollbackMain.getInstance(), task -> {
+                        new SaveInventory(target, LogType.FORCE, null, target.getInventory(), target.getEnderChest()).createSave();
+                        Message.COMMAND_FORCE_SAVE_SUCCESS.send(sender, target.getName());
+                    }, () -> Message.COMMAND_FORCE_SAVE_ERRORED.send(sender, target.getName())) == null) {
+                        Message.COMMAND_FORCE_SAVE_ERRORED.send(sender, target.getName());
+                    }
                 } else {
                     Message.ERRORS_NO_PERMISSION.send(sender);
                 }

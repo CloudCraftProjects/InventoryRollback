@@ -42,7 +42,7 @@ public record EntityInfo(
 
     public static @Nullable EntityInfo fromEntity(@Nullable Entity entity) {
         if (entity != null) {
-            return new EntityInfo(entity.getUniqueId(), entity.teamDisplayName());
+            return new EntityInfo(entity.getUniqueId(), entity.name());
         }
         return null;
     }
