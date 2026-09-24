@@ -1,3 +1,5 @@
+import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
+
 plugins {
     id("java-library")
     id("maven-publish")
@@ -58,4 +60,20 @@ bukkit {
     authors = listOf("danjono", "booky10")
     apiVersion = "1.21.9"
     foliaSupported = true
+    permissions {
+        register("inventoryrollback.command") {
+            default = BukkitPluginDescription.Permission.Default.OP
+        }
+        register("inventoryrollback.command.backup") {
+            default = BukkitPluginDescription.Permission.Default.OP
+        }
+        register("inventoryrollback.command.restore") {
+            default = BukkitPluginDescription.Permission.Default.OP
+        }
+        listOf("join", "quit", "death", "world-change").forEach {
+            register("inventoryrollback.saves.$it") {
+                default = BukkitPluginDescription.Permission.Default.TRUE
+            }
+        }
+    }
 }
